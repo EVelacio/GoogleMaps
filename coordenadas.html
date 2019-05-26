@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Geocoding Service</title>
+    <meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+    <meta charset="utf-8">
+    <style>
+      /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+      #map {
+        height: 80%;
+      }
+      /* Optional: Makes the sample page fill the window. */
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      #floating-panel {
+        position: absolute;
+        top: 10px;
+        left: 25%;
+        z-index: 5;
+        background-color: #fff;
+        padding: 5px;
+        border: 1px solid #999;
+        text-align: center;
+        font-family: 'Roboto','sans-serif';
+        line-height: 30px;
+        padding-left: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="floating-panel">
+      <input id="address" type="textbox" value="Coloca tu direccion">
+      <input id="submit" type="button" value="Buscar">
+    </div>
+    <div id="map"></div>
+    <script>
+      function initMap() {
+        var map = new google.maps.Map(document.getElementById('map'), {
+          zoom: 13,
+          center: {lat: 22.1509523, lng: -100.9707753}
+        });
+        var geocoder = new google.maps.Geocoder();
+        
+
+        document.getElementById('submit').addEventListener('click', function() {
+          geocodeAddress(geocoder, map);
+        });
+      }
+      //https://secure.gravatar.com/avatar/a02f497860213693928333bf80c1566a?s=60&d=http%3A%2F%2Fwww.eperros.com%2Fperros.png&r=g
+      var iconBase = 'perros.png';
+      function geocodeAddress(geocoder, resultsMap) {
+        var address = document.getElementById('address').value;
+        geocoder.geocode({'address': address}, function(results, status) {
+          if (status === 'OK') {
+            resultsMap.setCenter(results[0].geometry.location);
+            var marker = new google.maps.Marker({
+              map: resultsMap,
+              position: results[0].geometry.location,
+              icon: iconBase
+            });
+            marker.addListener('click', toggleBounce);
+            
+            //LAT Y LNG EN CONSOLA
+            console.log("Latitud: "+results[0].geometry.location.lat()+ " Longitud: "+results[0].geometry.location.lng());
+
+            //ANIMACION
+            function toggleBounce() {
+                if (marker.getAnimation() !== null) {
+                    marker.setAnimation(null);
+                } else {
+                    marker.setAnimation(google.maps.Animation.BOUNCE);
+                }
+            }
+
+            //INFO WINDOW
+            var contentString = '<div id="content">'+
+            '<div id="siteNotice">'+
+            '</div>'+
+            '<h1 id="firstHeading" class="firstHeading">Posible Cliente</h1>'+
+            '<div id="bodyContent">'+
+            '<p>JEFE! detecte un posible cliente en esta dirección. Se llama Juan y su mascota "malvavisco" es un poodle.<br>'+
+            ' Su ultimo servicio Estetico a la veterinaria fue: 2019/01/15</p>'+
+            '<p>Attribution: Uluru, <a href="https://en.wikipedia.org/w/index.php?title=Uluru&oldid=297882194">'+
+            'https://en.wikipedia.org/w/index.php?title=Uluru</a> '+
+            '<button type="button">HOLA?</button>.<br> <img src="http://pngimg.com/uploads/motorcycle/motorcycle_PNG3156.png" width="42" height="42"></img></p>'+
+            '</div>'+
+            '</div>';
+
+        var infowindow = new google.maps.InfoWindow({
+          content: contentString
+        });
+
+        marker.addListener('click', function() {
+          infowindow.open(map, marker);
+        });
+
+          } else {
+            alert('Geocode no se completo correctamente debido a: ' + status);
+          }
+        });
+      }
+    </script>
+    <script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuvf6OfNUkXz7NYYIOaDVaaXGy0OlSk3U&callback=initMap">
+    </script>
+  </body>
+</html>

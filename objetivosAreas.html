@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GEO</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <meta charset="utf-8">
+        <title>Geolocalización y cerca radial.</title>
+
+        <style>
+                #map {
+                  height: 100%;
+                }
+                
+                html, body {
+                  height: 100%;
+                  margin: 0;
+                  padding: 0;
+                }
+        </style>
+    </head>
+    <body>
+
+        <div id="map"></div>
+
+        <script>
+            var circle = null;
+            var map = null;
+            var marker = null;
+
+            function initMap(){
+                circle = null;
+                map = new google.maps.Map(
+            document.getElementById('map'),            
+            {center: new google.maps.LatLng(22.1509523, -100.9707753), zoom: 14});
+
+                var drawingManager =  new google.maps.drawing.DrawingManager({
+                    drawingControl: true,
+                    drawingControlOptions: {
+                    position: google.maps.ControlPosition.TOP_CENTER,
+                    drawingModes: ['marker', 'circle', 'polygon', 'polyline', 'rectangle']
+                    },
+                    markerOptions: {icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'},
+                    circleOptions: {
+                    fillColor: '#FFFFFF80',
+                    fillOpacity: 1,
+                    strokeWeight: 1,
+                    clickable: false,
+                    editable: true,
+                    zIndex: 1
+                    }
+
+                });
+                drawingManager.setMap(map);
+
+                google.maps.event.addListener(drawingManager,'overlaycomplete', function(event){
+                    if(event.type == 'circle'){
+                        var center = event.overlay.getCenter();                        
+                        circle = {
+                            radius: event.overlay.getRadius(),
+                            center : {
+                                lat:center.lat(),
+                                lng:center.lng()
+                            },
+                            overlay:event.overlay
+                    };
+
+                }else if(event.type == 'marker'){
+                    var position = event.overlay.position;
+                    marker = {
+                        center : {
+                            lat:position.lat(),
+                            lng:position.lng()
+                        }
+                    }
+
+                    var isInRadius = google.maps.geometry.spherical.computeDistanceBetween(
+                        position, circle.overlay.getCenter()) <= circle.radius;
+                        console.log(isInRadius);
+                    
+                }else{
+                    console.log("Algo salio mal");
+                }
+                
+                });
+
+
+                var JulianCarrillo = [
+                    {lat: 22.146126, lng: -100.966097}, 
+                    {lat: 22.144636, lng: -100.964531}, 
+                    {lat: 22.144007, lng: -100.964816}, 
+                    {lat: 22.143203, lng: -100.963387}, 
+                    {lat: 22.143054, lng: -100.963746}, 
+                    {lat: 22.140618, lng: -100.962710}, 
+                    {lat: 22.141089, lng: -100.961420}, 
+                    {lat: 22.135125, lng: -100.966265}, 
+                    {lat: 22.141134, lng: -100.969125}, 
+                    {lat: 22.142589, lng: -100.965033} 
+                ];
+
+                // Construct the polygon.
+                var ColJulianCarrillo = new google.maps.Polygon({
+                    paths: JulianCarrillo,
+                    strokeColor: '#FF0000',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#FF0000',
+                    fillOpacity: 0.35
+                });
+                ColJulianCarrillo.setMap(map);
+
+                console.log("AREA COLONIA: "+google.maps.geometry.spherical.computeArea(ColJulianCarrillo.getPath()));
+            
+                //ANTES DE DIBUJARLOS HAY QUE SABER SI ESTAN DENTRO DE LA COLONIA
+                var iconBase ='https://developers.google.com/maps/documentation/javascript/examples/full/images/';
+                var icons = {
+                    parking: {
+                        icon: iconBase + 'parking_lot_maps.png'
+                    },
+                    library: {
+                        icon: iconBase + 'library_maps.png'
+                    },
+                    info: {
+                        icon: 'perros.png'
+                    }
+                    };
+                    
+                    var features = [
+                    {
+                        position: new google.maps.LatLng(22.139701, -100.962834),///DENTRO
+                        type: 'info'
+                    },{
+                        position: new google.maps.LatLng(22.141503, -100.964392),//DENTRO
+                        type: 'info'
+                    }, {
+                        position: new google.maps.LatLng(22.144112, -100.967900),//FUERA
+                        type: 'library'
+                    }, {
+                        position: new google.maps.LatLng(22.140149, -100.971752),//FUERA
+                        type: 'library'
+                    }
+                ];
+                    
+                var a =0;
+                for (var i = 0; i < features.length; i++) {
+
+                    var marker = new google.maps.Marker({
+                        position: features[i].position,
+                        icon: icons[features[i].type].icon,
+                        map: map
+                    });
+
+                    var isInColonia = google.maps.geometry.poly.containsLocation(
+                    marker.position, ColJulianCarrillo);
+                    console.log("ESTA DENTRO?: "+isInColonia);
+                    
+                    if(!isInColonia){ 
+                        a=a+1;                       
+                        console.log("No estan dentro: "+a);
+                        marker.setMap(null);
+                        }
+                };
+
+                /*MARCADOR PRUEBA DENTRO
+                var marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(22.141503, -100.964392),
+                    icon: 'perros.png',
+                    map: map
+                });
+
+                //MARCADOR PRUEBA  FUERA
+                var marker2 = new google.maps.Marker({
+                    position: new google.maps.LatLng(22.144112, -100.967900), 
+                    icon: iconBase +'library_maps.png',
+                    map: map
+                });*/
+                
+
+                
+                
+            }
+        </script>
+
+
+        <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuvf6OfNUkXz7NYYIOaDVaaXGy0OlSk3U&libraries=drawing,geometry&callback=initMap">
+        </script>
+    </body>
+    </html>
+
+
