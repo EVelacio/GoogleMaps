@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>TODOS CLIENTES</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+        <meta charset="utf-8">
+        <title>clientes.</title>
+
+        <style>
+                #map {
+                  height: 100%;
+                }
+                
+                html, body {
+                  height: 100%;
+                  margin: 0;
+                  padding: 0;
+                }
+        </style>
+    </head>
+    <body>
+
+        <div id="map"></div>
+
+        <script>
+            var circle = null;
+            var map = null;
+            var marker = null;
+
+            function initMap(){
+                circle = null;
+                map = new google.maps.Map(
+            document.getElementById('map'),            
+            {center: new google.maps.LatLng(22.1509523, -100.9707753), zoom: 14});
+
+            var iconBase ='https://developers.google.com/maps/documentation/javascript/examples/full/images/';
+                var icons = {
+                    boxer: {
+                        icon: 'boxer.png'
+                    },
+                    husky: {
+                        icon: 'husky.png'
+                    },
+                    huella: {
+                        icon: 'huella.png'
+                    },
+                    pug: {
+                        icon: 'pug.png'
+                    },
+                    potosino: {
+                        icon: 'schnauzer.png'
+                    },
+                    casadog: {
+                        icon: 'casadog.png'
+                    },
+                    perro1: {
+                        icon: 'perro1.png'
+                    },
+                    perro2: {
+                        icon: 'perro2.png'
+                    }
+                    };
+                    
+                    var features = [
+                    {
+                        position: new google.maps.LatLng(22.139701, -100.962834),
+                        type: 'boxer'
+                    },{
+                        position: new google.maps.LatLng(22.141503, -100.964392),
+                        type: 'husky'
+                    }, {
+                        position: new google.maps.LatLng(22.144112, -100.967900),
+                        type: 'huella'
+                    }, {
+                        position: new google.maps.LatLng(22.140149, -100.971752),
+                        type: 'pug'
+                    },{
+                        position: new google.maps.LatLng(22.136177, -100.965707),
+                        type: 'potosino'
+                    },{
+                        position: new google.maps.LatLng(22.137669, -100.967340),
+                        type: 'casadog'
+                    }, {
+                        position: new google.maps.LatLng(22.142604, -100.965454),
+                        type: 'perro1'
+                    }, {
+                        position: new google.maps.LatLng(22.137185, -100.968787),
+                        type: 'perro2'
+                    }
+                ];
+
+                // Create markers.
+                for (var i = 0; i < features.length; i++) {
+                var marker = new google.maps.Marker({
+                    position: features[i].position,
+                    icon: icons[features[i].type].icon,
+                    map: map
+                });
+                };
+
+            }
+        </script>
+        <script async defer
+        src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuvf6OfNUkXz7NYYIOaDVaaXGy0OlSk3U&callback=initMap">
+        </script>
+        </body>
+        </html>
+        

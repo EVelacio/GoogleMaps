@@ -5,6 +5,8 @@
         <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
         <meta charset="utf-8">
         <title>Geolocalización y cerca radial.</title>
+        <script src="https://smtpjs.com/v3/smtp.js"></script>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 
         <style>
                 #map {
@@ -16,6 +18,37 @@
                   margin: 0;
                   padding: 0;
                 }
+                
+            .boton_personalizado{
+                text-decoration: none;
+                padding: 2px;
+                font-weight: 300;
+                font-size: 15px;
+                color: #ffffff;
+                background-color: #1883ba;
+                border-radius: 6px;
+                border: 2px solid #0016b0;
+            }
+            .boton_personalizado:hover{
+                color: #1883ba;
+                background-color: #ffffff;
+            }
+
+            .boton_personalizado2{
+                text-decoration: none;
+                padding: 2px;
+                font-weight: 300;
+                font-size: 15px;
+                color: #ffffff;
+                background-color: #64cbff;
+                border-radius: 6px;
+                border: 2px solid #64cbff;
+            }
+            .boton_personalizado2:hover{
+                color: #1883ba;
+                background-color: #ffffff;
+            }
+
         </style>
     </head>
     <body>
@@ -26,109 +59,143 @@
             var circle = null;
             var map = null;
             var marker = null;
+            var features=null;
+            var ColJulianCarrillo =null;
+            var ColSanLuisRey =null;
 
-            function initMap(){
-                circle = null;
+            //ANTES DE DIBUJARLOS HAY QUE SABER SI ESTAN DENTRO DE LA COLONIA
+            var iconBase = 'https://developers.google.com/maps/documentation/javascript/examples/full/images/';
+            var icons = {
+                parking: {
+                    icon: iconBase + 'parking_lot_maps.png'
+                },
+                library: {
+                    icon: iconBase + 'library_maps.png'
+                },
+                info: {
+                    icon: 'huella.png'
+                }
+            };
+
+            var JulianCarrillo = [
+                    { lat: 22.146126, lng: -100.966097 },
+                    { lat: 22.144636, lng: -100.964531 },
+                    { lat: 22.144007, lng: -100.964816 },
+                    { lat: 22.143203, lng: -100.963387 },
+                    { lat: 22.143054, lng: -100.963746 },
+                    { lat: 22.140618, lng: -100.962710 },
+                    { lat: 22.141089, lng: -100.961420 },
+                    { lat: 22.139604, lng: -100.962260 },
+                    { lat: 22.138764, lng: -100.962894 },
+                    { lat: 22.137760, lng: -100.964362 },
+                    { lat: 22.135125, lng: -100.966265 },
+                    { lat: 22.141134, lng: -100.969125 },
+                    { lat: 22.142589, lng: -100.965033 }
+                ];
+
+                var SanLuisRey = [
+                    { lat: 22.141355, lng: -100.961161 },
+                    { lat: 22.136926, lng: -100.956853 },
+                    { lat: 22.134894, lng: -100.958075 },
+                    { lat: 22.133513, lng: -100.960532 },
+                    { lat: 22.137717, lng: -100.964234 },
+                    { lat: 22.138701, lng: -100.962839 },
+                    { lat: 22.139416, lng: -100.962152 },
+                ];
+
+
+
+
+
+
+            function initMap() {                
                 map = new google.maps.Map(
-            document.getElementById('map'),            
-            {center: new google.maps.LatLng(22.1509523, -100.9707753), zoom: 14});
+                    document.getElementById('map'),
+                    { center: new google.maps.LatLng(22.1509523, -100.9707753), zoom: 14 });
 
-                var drawingManager =  new google.maps.drawing.DrawingManager({
+                var drawingManager = new google.maps.drawing.DrawingManager({
                     drawingControl: true,
                     drawingControlOptions: {
-                    position: google.maps.ControlPosition.TOP_CENTER,
-                    drawingModes: ['marker', 'circle', 'polygon', 'polyline', 'rectangle']
+                        position: google.maps.ControlPosition.TOP_CENTER,
+                        drawingModes: ['marker', 'circle', 'polygon', 'polyline', 'rectangle']
                     },
-                    markerOptions: {icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png'},
+                    markerOptions: { icon: 'https://developers.google.com/maps/documentation/javascript/examples/full/images/beachflag.png' },
                     circleOptions: {
-                    fillColor: '#FFFFFF80',
-                    fillOpacity: 1,
-                    strokeWeight: 1,
-                    clickable: false,
-                    editable: true,
-                    zIndex: 1
+                        fillColor: '#FFFFFF80',
+                        fillOpacity: 1,
+                        strokeWeight: 1,
+                        clickable: false,
+                        editable: true,
+                        zIndex: 1
                     }
 
                 });
                 drawingManager.setMap(map);
 
-                google.maps.event.addListener(drawingManager,'overlaycomplete', function(event){
-                    if(event.type == 'circle'){
-                        var center = event.overlay.getCenter();                        
+                google.maps.event.addListener(drawingManager, 'overlaycomplete', function (event) {
+                    if (event.type == 'circle') {
+                        var center = event.overlay.getCenter();
                         circle = {
                             radius: event.overlay.getRadius(),
-                            center : {
-                                lat:center.lat(),
-                                lng:center.lng()
+                            center: {
+                                lat: center.lat(),
+                                lng: center.lng()
                             },
-                            overlay:event.overlay
-                    };
+                            overlay: event.overlay
+                        };
 
-                }else if(event.type == 'marker'){
-                    var position = event.overlay.position;
-                    marker = {
-                        center : {
-                            lat:position.lat(),
-                            lng:position.lng()
+                    } else if (event.type == 'marker') {
+                        var position = event.overlay.position;
+                        marker = {
+                            center: {
+                                lat: position.lat(),
+                                lng: position.lng()
+                            }
                         }
+
+                        var isInRadius = google.maps.geometry.spherical.computeDistanceBetween(
+                            position, circle.overlay.getCenter()) <= circle.radius;
+                        console.log(isInRadius);
+
+                    } else {
+                        console.log("Algo salio mal");
                     }
 
-                    var isInRadius = google.maps.geometry.spherical.computeDistanceBetween(
-                        position, circle.overlay.getCenter()) <= circle.radius;
-                        console.log(isInRadius);
-                    
-                }else{
-                    console.log("Algo salio mal");
-                }
-                
                 });
+             
 
-
-                var JulianCarrillo = [
-                    {lat: 22.146126, lng: -100.966097}, 
-                    {lat: 22.144636, lng: -100.964531}, 
-                    {lat: 22.144007, lng: -100.964816}, 
-                    {lat: 22.143203, lng: -100.963387}, 
-                    {lat: 22.143054, lng: -100.963746}, 
-                    {lat: 22.140618, lng: -100.962710}, 
-                    {lat: 22.141089, lng: -100.961420}, 
-                    {lat: 22.135125, lng: -100.966265}, 
-                    {lat: 22.141134, lng: -100.969125}, 
-                    {lat: 22.142589, lng: -100.965033} 
-                ];
-
+                
                 // Construct the polygon.
-                var ColJulianCarrillo = new google.maps.Polygon({
+                ColJulianCarrillo = new google.maps.Polygon({
                     paths: JulianCarrillo,
                     strokeColor: '#FF0000',
                     strokeOpacity: 0.8,
                     strokeWeight: 2,
                     fillColor: '#FF0000',
+                    fillOpacity: 0.35,
+                    label: "JULIAN CARRILLO"
+                });
+
+                ColSanLuisRey = new google.maps.Polygon({
+                    paths: SanLuisRey,
+                    strokeColor: '#FF00FF',
+                    strokeOpacity: 0.8,
+                    strokeWeight: 2,
+                    fillColor: '#FF00FF',
                     fillOpacity: 0.35
                 });
                 ColJulianCarrillo.setMap(map);
+                ColSanLuisRey.setMap(map);
 
-                console.log("AREA COLONIA: "+google.maps.geometry.spherical.computeArea(ColJulianCarrillo.getPath()));
-            
-                //ANTES DE DIBUJARLOS HAY QUE SABER SI ESTAN DENTRO DE LA COLONIA
-                var iconBase ='https://developers.google.com/maps/documentation/javascript/examples/full/images/';
-                var icons = {
-                    parking: {
-                        icon: iconBase + 'parking_lot_maps.png'
-                    },
-                    library: {
-                        icon: iconBase + 'library_maps.png'
-                    },
-                    info: {
-                        icon: 'perros.png'
-                    }
-                    };
-                    
-                    var features = [
+                console.log("AREA COLONIA: " + google.maps.geometry.spherical.computeArea(ColJulianCarrillo.getPath()));
+
+
+
+                features = [
                     {
                         position: new google.maps.LatLng(22.139701, -100.962834),///DENTRO
                         type: 'info'
-                    },{
+                    }, {
                         position: new google.maps.LatLng(22.141503, -100.964392),//DENTRO
                         type: 'info'
                     }, {
@@ -137,49 +204,154 @@
                     }, {
                         position: new google.maps.LatLng(22.140149, -100.971752),//FUERA
                         type: 'library'
+                    }, {
+                        position: new google.maps.LatLng(22.136177, -100.965707),///DENTRO
+                        type: 'info'
+                    }, {
+                        position: new google.maps.LatLng(22.137669, -100.967340),//DENTRO
+                        type: 'info'
+                    }, {
+                        position: new google.maps.LatLng(22.142604, -100.965454),//FUERA
+                        type: 'library'
+                    }, {
+                        position: new google.maps.LatLng(22.137185, -100.968787),//FUERA
+                        type: 'library'
                     }
                 ];
-                    
-                var a =0;
+
+                
+
+                var Vet = new google.maps.Marker({
+                    position: new google.maps.LatLng(22.141809, -100.958699),
+                    icon: 'vet.png',
+                    map: map,
+                    title: "PROBANDO TEXTO"
+                });
+
+                setTimeout(function () {
+                    var CJC = new google.maps.Marker({
+                        position: new google.maps.LatLng(22.1404094, -100.9656072),
+                        icon: 'notification.png',
+                        map: map,
+                        title: "PROMOCIÓN",
+                        animation: google.maps.Animation.DROP,
+                    });
+                    CJC.addListener('click', function () {
+                        infoWCJC.open(map, CJC);
+                    });
+                }, 3500);
+
+
+
+                Vet.setAnimation(google.maps.Animation.BOUNCE);
+                Vet.addListener('click', toggleBounce);
+
+                function toggleBounce() {
+                    if (Vet.getAnimation() !== null) {
+                        Vet.setAnimation(null);
+                        console.log("Cancelaste la animacion");
+                    } else {
+                        console.log("No paso nada");
+                    }
+                }
+
+
+                var contentString = '<div>' +
+                    '<div >' +
+                    '</div>' +
+                    '<h4 >TU ESTAS AQUI</h4>';
+
+                var ColJC = '<div id="content">' +
+                    '<div id="siteNotice">' +
+                    '</div>' +
+                    '<h3 id="firstHeading" class="firstHeading">JEFE! :) </h3>' +
+                    '<p>He detectado en esta colonia: JULIAN CARRILLO, a #4 posibles clientes!</p>' +
+                    '<button id="mostrar" onclick="btnUno()" class="btn btn-outline-primary btn-sm" >Mostrar clientes</button>'+
+                    '<button class="btn btn-sm btn-secondary" disabled>Asignar Promoción</button>'+
+                    '<button onClick="email()" class="btn btn-outline-success btn-sm" >Mandar Publicidad</button>';
+
+
+                var infowindow = new google.maps.InfoWindow({
+                    content: contentString
+                });
+                var infoWCJC = new google.maps.InfoWindow({
+                    content: ColJC
+                });
+
+                Vet.addListener('click', function () {
+                    infowindow.open(map, Vet);
+                });
+
+
+
+                /*MARCADOR PRUEBA DENTRO
+var marker = new google.maps.Marker({
+                    position: new google.maps.LatLng(22.141503, -100.964392),
+                icon: 'perros.png',
+                map: map
+            });
+ 
+            //MARCADOR PRUEBA  FUERA
+var marker2 = new google.maps.Marker({
+                    position: new google.maps.LatLng(22.144112, -100.967900),
+                icon: iconBase +'library_maps.png',
+                map: map
+            });*/
+
+            }
+            function btnUno() {
+                var a = 0, b = 0;
                 for (var i = 0; i < features.length; i++) {
 
                     var marker = new google.maps.Marker({
                         position: features[i].position,
                         icon: icons[features[i].type].icon,
-                        map: map
+                        map: map,
+                        animation: google.maps.Animation.DROP,
+
                     });
 
                     var isInColonia = google.maps.geometry.poly.containsLocation(
-                    marker.position, ColJulianCarrillo);
-                    console.log("ESTA DENTRO?: "+isInColonia);
-                    
-                    if(!isInColonia){ 
-                        a=a+1;                       
-                        console.log("No estan dentro: "+a);
-                        marker.setMap(null);
-                        }
+                        marker.position, ColJulianCarrillo);
+                    console.log("ESTA DENTRO?: " + isInColonia);
+
+                    if (!isInColonia) {
+                        a = a + 1;
+                        console.log("No estan dentro: " + a);
+                        marker.setMap(null);//DESAPARECE LOS QUE NO ESTAN DENTRO DE LA COLONIA
+                    } else {
+                        b = b + 1;
+                        console.log("Total dentro: " + b);
+                    }
                 };
 
-                /*MARCADOR PRUEBA DENTRO
-                var marker = new google.maps.Marker({
-                    position: new google.maps.LatLng(22.141503, -100.964392),
-                    icon: 'perros.png',
-                    map: map
-                });
 
-                //MARCADOR PRUEBA  FUERA
-                var marker2 = new google.maps.Marker({
-                    position: new google.maps.LatLng(22.144112, -100.967900), 
-                    icon: iconBase +'library_maps.png',
-                    map: map
-                });*/
-                
-
-                
-                
             }
-        </script>
 
+
+            
+            function email() {
+                console.log("enviando pub");
+                Email.send({
+                Host : "smtp.elasticemail.com",
+                Username : "svelacio@gmail.com",
+                Password : "29d6ea25-5d31-45b6-843b-f0c89373dd73",
+                To : 'velacio@outlook.com',
+                From : "svelacio@gmail.com",
+                Subject : "PROMOCION NENE PROMOCION!!!!",
+                Body : "<h1>PROMOOOOO</h1><p>Probando estructura html</p>"
+            }).then(
+            message => alert(message)
+            );
+            }
+
+           
+
+
+        </script>
+<script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
 
         <script async defer
             src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAuvf6OfNUkXz7NYYIOaDVaaXGy0OlSk3U&libraries=drawing,geometry&callback=initMap">
